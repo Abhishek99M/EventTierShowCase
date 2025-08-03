@@ -1,36 +1,143 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Tier-Based Event Showcase
 
-## Getting Started
+A full-stack web application that displays events to logged-in users based on their membership tier (Free, Silver, Gold, Platinum).
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## ✨ Tech Stack
+
+* **Frontend**: Next.js 14 (App Router)
+* **Authentication**: Clerk.dev
+* **Database**: Supabase (PostgreSQL)
+* **Styling**: Tailwind CSS
+
+---
+
+## 🚀 Features
+
+* User authentication with Clerk (Sign in, Sign up, User profile)
+* Role-based access to events (based on tier)
+* Events displayed in responsive card layout
+* Tier-level logic (Gold users see Free+Silver+Gold, etc.)
+* Dynamic data fetched from Supabase
+* Admin can upgrade tiers via Clerk metadata
+
+---
+
+## 💼 Project Structure
+
+```
+/app
+  /api
+    /set-tier      -> API route to update user tier
+  /events          -> Protected page for event listing
+  layout.tsx       -> App layout with navbar
+  page.tsx         -> Public landing page (Home)
+/components
+  navbar.tsx       -> Header with SignIn/SignOut
+  EventCard.tsx
+/utils
+  /supabase
+    client.ts      -> Supabase browser client
+    server.ts      -> Supabase server client
+
+.env.local         -> Environment variables
+middleware.ts      -> Route protection using Clerk
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📊 Supabase Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **Create a table `events`**:
 
-## Learn More
+```sql
+CREATE TYPE tier_level AS ENUM ('free', 'silver', 'gold', 'platinum');
 
-To learn more about Next.js, take a look at the following resources:
+CREATE TABLE events (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  title TEXT,
+  description TEXT,
+  event_date TIMESTAMP,
+  image_url TEXT,
+  tier tier_level
+);
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. **Seed sample data**:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```sql
+INSERT INTO events (id, title, description, event_date, image_url, tier)
+VALUES
+  (uuid_generate_v4(), 'Free Yoga Class', 'Join us for yoga', '2025-08-10 09:00:00', 'supabase_url/yoga.png', 'free'),
+  (uuid_generate_v4(), 'Coding Bootcamp', 'Learn JS basics', '2025-08-12 18:00:00', 'supabase_url/coding.png', 'silver'),
+  (uuid_generate_v4(), 'Tech Trends', 'Tech 2025 insights', '2025-08-20 14:00:00', 'supabase_url/tech.png', 'silver'),
+  (uuid_generate_v4(), 'Hackathon', 'Compete & win', '2025-08-25 11:00:00', 'supabase_url/hackathon.png', 'gold'),
+  (uuid_generate_v4(), 'Gala Dinner', 'Meet industry leaders', '2025-08-30 20:00:00', 'supabase_url/gala.png', 'platinum');
+```
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🚪 Authentication & Access
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+* Authentication handled via Clerk.dev
+* User tier stored in `publicMetadata` like:
+
+```json
+{
+  "tier": "silver"
+}
+```
+
+* Middleware protects routes under `/events`
+
+---
+
+## 🔗 Environment Variables
+
+Add these to `.env.local`:
+
+```
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_key
+CLERK_SECRET_KEY=your_clerk_secret
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
+```
+
+---
+
+## 🌎 Deployment (Vercel)
+
+* Ensure `.env.local` values are added to Vercel dashboard
+* Add `@clerk/clerk-sdk-node` for server-side tier updates
+
+---
+
+## ⚡ Bonus Features
+
+* Display upgrade message for restricted events
+* Button to simulate tier upgrade (using `/api/set-tier`)
+* Supabase Storage used for event images
+
+---
+
+## 🎓 Learnings
+
+* Clerk metadata manipulation
+* Supabase integration (RLS optional)
+* Server + client rendering hybrid
+
+---
+
+## ✅ Author
+
+Abhishek Kumar
+Built with passion for Psypher AI Task
+
+---
+
+## 👉 Want to Contribute?
+
+Pull requests welcome!
+
+---
